@@ -66,7 +66,7 @@ public class CurrencyControllerIntegrationTest {
 	@Test
 	public void testConvertEndpoint() throws Exception {
 		final Gson gson = new Gson();
-		final String url = "/currency/convert"; 
+		final String url = "/api/convert"; 
 		String validBaseCurrency = "CAD";
 		String validTargetCurrency = "USD";
 		Double expectedRate = 1.32;
@@ -99,21 +99,28 @@ public class CurrencyControllerIntegrationTest {
 				.andReturn();
 
 		// Test missing target currency
-		mvcResult = mvc.perform(post(url).content(mapper.writeValueAsString(new ConvertRequest(2.0, validBaseCurrency, "")))
+		mvcResult = mvc.perform(post(url).with(csrf().asHeader()).content(mapper.writeValueAsString(new ConvertRequest(2.0, validBaseCurrency, "")))
 			      .contentType(MediaType.APPLICATION_JSON)
 			      .accept(MediaType.APPLICATION_JSON))
 				.andExpect(status().isBadRequest())
 				.andReturn();
 		
 		// Test negative value
-		mvcResult = mvc.perform(post(url).content(mapper.writeValueAsString(new ConvertRequest(-2.0, validBaseCurrency, validTargetCurrency)))
+		mvcResult = mvc.perform(post(url).with(csrf().asHeader()).content(mapper.writeValueAsString(new ConvertRequest(-2.0, validBaseCurrency, validTargetCurrency)))
 			      .contentType(MediaType.APPLICATION_JSON)
 			      .accept(MediaType.APPLICATION_JSON))
 				.andExpect(status().isBadRequest())
 				.andReturn();
+		
+		// Test CSRF
+		mvcResult = mvc.perform(post(url).with(csrf().useInvalidToken().asHeader()).content(mapper.writeValueAsString(new ConvertRequest(2.0, validBaseCurrency, validTargetCurrency)))
+			      .contentType(MediaType.APPLICATION_JSON)
+			      .accept(MediaType.APPLICATION_JSON))
+				.andExpect(status().isForbidden())
+				.andReturn();
 				
 		// Test invalid base currency
-		mvcResult = mvc.perform(post(url).content(mapper.writeValueAsString(new ConvertRequest(2.0, invalidBaseCurrency, validTargetCurrency)))
+		mvcResult = mvc.perform(post(url).with(csrf().asHeader()).content(mapper.writeValueAsString(new ConvertRequest(2.0, invalidBaseCurrency, validTargetCurrency)))
 			      .contentType(MediaType.APPLICATION_JSON)
 			      .accept(MediaType.APPLICATION_JSON))
 				.andExpect(status().isBadRequest())
@@ -122,7 +129,7 @@ public class CurrencyControllerIntegrationTest {
 		assertEquals(responseEntity.getError(), "Base '" + invalidBaseCurrency + "' is not supported.");
 		
 		// Test invalid target currency
-		mvcResult = mvc.perform(post(url).content(mapper.writeValueAsString(new ConvertRequest(2.0, validBaseCurrency, invalidTargetCurrency)))
+		mvcResult = mvc.perform(post(url).with(csrf().asHeader()).content(mapper.writeValueAsString(new ConvertRequest(2.0, validBaseCurrency, invalidTargetCurrency)))
 			      .contentType(MediaType.APPLICATION_JSON)
 			      .accept(MediaType.APPLICATION_JSON))
 				.andExpect(status().isBadRequest())
@@ -131,7 +138,7 @@ public class CurrencyControllerIntegrationTest {
 		assertEquals(responseEntity.getError(), "Base '" + invalidTargetCurrency + "' is not supported.");
 		
 		// Test valid case
-		mvcResult = mvc.perform(post(url).content(mapper.writeValueAsString(new ConvertRequest(2.0, validBaseCurrency, validTargetCurrency)))
+		mvcResult = mvc.perform(post(url).with(csrf().asHeader()).content(mapper.writeValueAsString(new ConvertRequest(2.0, validBaseCurrency, validTargetCurrency)))
 			      .contentType(MediaType.APPLICATION_JSON)
 			      .accept(MediaType.APPLICATION_JSON))
 				.andExpect(status().isOk())
@@ -142,7 +149,7 @@ public class CurrencyControllerIntegrationTest {
 		assertEquals(responseEntity.getLocalize(), "en-US");
 		
 		// Test general exception
-		mvcResult = mvc.perform(post(url).content(mapper.writeValueAsString(new ConvertRequest(2.0, invalidTargetCurrency, validTargetCurrency)))
+		mvcResult = mvc.perform(post(url).with(csrf().asHeader()).content(mapper.writeValueAsString(new ConvertRequest(2.0, invalidTargetCurrency, validTargetCurrency)))
 			      .contentType(MediaType.APPLICATION_JSON)
 			      .accept(MediaType.APPLICATION_JSON))
 				.andExpect(status().isInternalServerError())
