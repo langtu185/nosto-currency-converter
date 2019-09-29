@@ -53,7 +53,7 @@ public class CacheConfig extends CachingConfigurerSupport {
 			logger.info("Redis Could host: " + cacheHost);
 			logger.info("Redis Could port: " + cachePort);
 		} catch (URISyntaxException e) {
-			// Do nothing
+			logger.error(e.getMessage());
 		}
         redisStandaloneConfiguration.setHostName(cacheHost);
         redisStandaloneConfiguration.setPort(cachePort);
