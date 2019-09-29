@@ -1,5 +1,7 @@
 package com.nosto.convertor.config;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
@@ -29,8 +31,20 @@ public class CacheConfig extends CachingConfigurerSupport {
     @Bean
     public LettuceConnectionFactory redisConnectionFactory() {
         RedisStandaloneConfiguration redisStandaloneConfiguration = new RedisStandaloneConfiguration();
-        redisStandaloneConfiguration.setHostName(appProperties.getCacheHost());
-        redisStandaloneConfiguration.setPort(appProperties.getCachePort());
+        String cacheHost = appProperties.getCacheHost(); // Get local Cache host
+        int cachePort = appProperties.getCachePort(); // Get local Cache port
+        // Get Redis Cloud if exist
+        try {        	
+			URI redisUri = new URI(System.getenv("REDISCLOUD_URL"));
+			if(redisUri != null) {
+				cacheHost = redisUri.getHost();
+				cachePort = redisUri.getPort();
+			}			
+		} catch (URISyntaxException e) {
+			// Do nothing
+		}
+        redisStandaloneConfiguration.setHostName(cacheHost);
+        redisStandaloneConfiguration.setPort(cachePort);
         return new LettuceConnectionFactory(redisStandaloneConfiguration);
     }
 
