@@ -10,6 +10,9 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js" crossorigin="anonymous"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" crossorigin="anonymous"></script>
   
+  <meta name="_csrf" content="${_csrf.token}"/>
+  <meta name="_csrf_header" content="${_csrf.headerName}"/>
+  
 </head>
 
 <body>
@@ -21,6 +24,7 @@
     <div class="jumbotron" style="padding: 40px;">
       <!-- Money Exchange Form -->
       <form id="money-exchange-form">
+      	<input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
         <div class="form-group row justify-content-center">
             <!-- <input type="hidden" name="csrf-token" value="abc"/> -->
           <div class="col-2">
@@ -65,16 +69,21 @@
   		    var data = {};
 			
   		    dataArr.forEach((item) => {
-  		    	data[item.name] = item.value
-  		    });
-  			
-  			
+  		    	data[item.name] = item.value.trim();
+  		    });  		
+  		    
+  		  	var token = $("meta[name='_csrf']").attr("content");
+  			var header = $("meta[name='_csrf_header']").attr("content");
+  		 	
   			$.ajax({
   				method: 'POST',
   				url: '/api/convert',
   				data: JSON.stringify(data),
   				contentType: 'application/json;charset=utf-8',
   				dataType: 'json',
+  				headers: {
+  			        'X-CSRF-TOKEN':token,  			        
+  			    },
   				success: (res) => {
   				// Get response and display
   		          const {value, localize, currency} = res;
