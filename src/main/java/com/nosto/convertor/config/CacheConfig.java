@@ -22,8 +22,6 @@ import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 
-import com.nosto.convertor.controller.CurrencyController;
-
 @Configuration
 @ConfigurationProperties(prefix = "cache")
 public class CacheConfig extends CachingConfigurerSupport {
@@ -38,15 +36,20 @@ public class CacheConfig extends CachingConfigurerSupport {
         RedisStandaloneConfiguration redisStandaloneConfiguration = new RedisStandaloneConfiguration();
         String cacheHost = appProperties.getCacheHost(); // Get local Cache host
         int cachePort = appProperties.getCachePort(); // Get local Cache port
+        String password = null;
         // Get Redis Cloud if exist
         try {        	
+        	String redisCloudUri = System.getenv("REDISCLOUD_URL");
         	logger.info("Redis Could URI: " + System.getenv("REDISCLOUD_URL"));
-			URI redisUri = new URI(System.getenv("REDISCLOUD_URL"));			
-			if(redisUri != null) {
+        	
+        	if(redisCloudUri != null) {
+	    		URI redisUri = new URI(redisCloudUri);
 				logger.info(redisUri.toString());
 				cacheHost = redisUri.getHost();
 				cachePort = redisUri.getPort();
-			}			
+				password = redisUri.getUserInfo().split(":",2)[1];    			
+        	}        	
+			
 			logger.info("Redis Could host: " + cacheHost);
 			logger.info("Redis Could port: " + cachePort);
 		} catch (URISyntaxException e) {
@@ -54,6 +57,9 @@ public class CacheConfig extends CachingConfigurerSupport {
 		}
         redisStandaloneConfiguration.setHostName(cacheHost);
         redisStandaloneConfiguration.setPort(cachePort);
+        if(password != null)
+        	redisStandaloneConfiguration.setPassword(password);
+        
         return new LettuceConnectionFactory(redisStandaloneConfiguration);
     }
 
