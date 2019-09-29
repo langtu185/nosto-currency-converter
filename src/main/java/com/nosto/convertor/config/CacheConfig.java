@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.cache.CacheManager;
@@ -20,9 +22,12 @@ import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 
+import com.nosto.convertor.controller.CurrencyController;
+
 @Configuration
 @ConfigurationProperties(prefix = "cache")
 public class CacheConfig extends CachingConfigurerSupport {
+	private static final Logger logger = LoggerFactory.getLogger(CacheConfig.class);
 	private Map<String, Long> cacheExpirations = new HashMap<>();
 	
 	@Autowired
@@ -35,11 +40,15 @@ public class CacheConfig extends CachingConfigurerSupport {
         int cachePort = appProperties.getCachePort(); // Get local Cache port
         // Get Redis Cloud if exist
         try {        	
-			URI redisUri = new URI(System.getenv("REDISCLOUD_URL"));
+        	logger.info("Redis Could URI: " + System.getenv("REDISCLOUD_URL"));
+			URI redisUri = new URI(System.getenv("REDISCLOUD_URL"));			
 			if(redisUri != null) {
+				logger.info(redisUri.toString());
 				cacheHost = redisUri.getHost();
 				cachePort = redisUri.getPort();
 			}			
+			logger.info("Redis Could host: " + cacheHost);
+			logger.info("Redis Could port: " + cachePort);
 		} catch (URISyntaxException e) {
 			// Do nothing
 		}
