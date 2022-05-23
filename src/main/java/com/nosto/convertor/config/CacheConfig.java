@@ -41,6 +41,7 @@ public class CacheConfig extends CachingConfigurerSupport {
         try {        	
         	String redisCloudUri = System.getenv("REDISCLOUD_URL");
         	logger.info("Redis Could URI: " + System.getenv("REDISCLOUD_URL"));
+        	logger.info("API Key: " + System.getenv("APILAYER_KEY"));
         	
         	if(redisCloudUri != null) {
 	    		URI redisUri = new URI(redisCloudUri);

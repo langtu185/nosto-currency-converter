@@ -8,6 +8,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpStatusCodeException;
@@ -34,7 +37,7 @@ public class CurrencyServiceImpl implements CurrencyService{
 	 * 
 	 * @param baseCurrency - the currency that the exchange rates are generally
 	 *                     quoted as a given country
-	 * @return the ExchangeRate object. In case of HttpStatusCodeException, return
+	 * @return the ExchangeRate object. In case of HttpStatusCodeException, returRn
 	 *         the ExchangeRate object with 'error' attribute.
 	 * @throws Exception
 	 */	
@@ -50,7 +53,10 @@ public class CurrencyServiceImpl implements CurrencyService{
 
 			// Make an API call to get the exchange rate information
 			// Include URL variables in the call
-			ResponseEntity<String> responseEntity = restTemplate.getForEntity(requestUrl, String.class);
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("apikey", System.getenv("APILAYER_KEY"));
+			HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
+			ResponseEntity<String> responseEntity = restTemplate.exchange(requestUrl, HttpMethod.GET, requestEntity, String.class);
 			logger.info("listExchangeRate: responseEntity=" + responseEntity.toString());
 			
 			// Parse JSON response into Object
