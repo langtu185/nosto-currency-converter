@@ -1,147 +1,154 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="utf-8"/>
-  <title>Noso Exchange Converter</title>
-   <!-- Latest compiled and minified Bootstrap CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
 
-  <!-- Latest compiled Boostrap -->
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js" crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
-  
-  <meta name="_csrf" content="${_csrf.token}"/>
-  <meta name="_csrf_header" content="${_csrf.headerName}"/>
-  
+<head>
+	<meta charset="utf-8" />
+	<title>Exchange Converter</title>
+	<!-- Latest compiled Bootstrap CSS -->
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css" rel="stylesheet"
+		crossorigin="anonymous">
+
+	<!--Latest jQuery -->
+	<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" crossorigin="anonymous"></script>
+
+	<!-- Latest compiled Boostrap -->
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.bundle.min.js"
+		crossorigin="anonymous"></script>
+
+	<meta name="_csrf" content="${_csrf.token}" />
+	<meta name="_csrf_header" content="${_csrf.headerName}" />
 </head>
 
 <body>
-  <div style="margin: auto; margin-top:100px; width: 75%;" id="main-container">
-    <div class="jumbotron"  style="padding:40px; background-color: #cccc00;">
-      <h1 style="font-size: 5rem; text-align: center;">NOSTO EXCHANGE CONVERTER</h1>
-    </div>
+	<div id="main-container" style="margin: auto; margin-top:100px; width: 75%;">
+		<div class="jumbotron p-4 mb-5" style="background-color: #dddd02;">
+			<h1 style="font-size: 4.5rem; text-align: center; color: #411212;">EXCHANGE CONVERTER</h1>
+		</div>
 
-    <div class="jumbotron" style="padding: 40px;">
-      <!-- Money Exchange Form -->
-      <form id="money-exchange-form" class="needs-validation">
-      	<input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
-        <div class="form-group row justify-content-center">
-            <!-- <input type="hidden" name="csrf-token" value="abc"/> -->
-          <div class="col-2">
-            <input required class="form-control" type="number" placeholder="Value" name="value" min="0">
-          </div>
-          <div class="col-4">
-            <input required class="form-control" type="text" placeholder="Source Currency" name="source" pattern="[a-zA-Z]{3}" minlength="3" maxlength="3">
-          </div>
-          <div class="col-4">
-            <input required class="form-control" type="text" placeholder="Target Currency" name="target" pattern="[a-zA-Z]{3}" minlength="3" maxlength="3">
-          </div>
-          <button class="col btn btn-default btn-primary" id="convert-btn">Convert</button>
-        </div>
-      </form>
+		<div class="jumbotron p-4" style="background-color: #e9ecef;">
+			<!-- Money Exchange Form -->
+			<form id="money-exchange-form" class="mt-3 needs-validation" novalidate>
+				<input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
+				<div class="row gx-3 justify-content-center">
+					<div class="col-3">
+						<div class="input-group has-validation">
+							<input required class="form-control" type="number" placeholder="Value" name="value" min="0">
+							<div class="invalid-feedback">
+								Please fill in a non-negative number
+							</div>
+						</div>
+					</div>
+					<div class="col-4">
+						<div class="input-group has-validation">
+							<input class="form-control" type="text" required name="source" pattern="[a-zA-Z]{3}" minlength="3" maxlength="3" autocapitalize="characters" placeholder="Source Currency (E.g. EUR)" oninput="this.value = this.value.toUpperCase()">
+							<div class="invalid-feedback">
+								Please fill in a three characters source currency.
+							</div>
+						</div>
+					</div>
+					<div class="col-4">
+						<input class="form-control" type="text" required name="target" pattern="[a-zA-Z]{3}" minlength="3" maxlength="3" autocapitalize="characters" placeholder="Target Currency (E.g. USD)" oninput="this.value = this.value.toUpperCase()">
+						<div class="invalid-feedback">
+							Please fill in a three characters target currency.
+						</div>
+					</div>
+				</div>
+				<div class="row mt-4 justify-content-center">
+					<button id="convert-btn" class="col-8 btn btn-default btn-primary" type="submit">
+						Convert
+					</button>
+				</div>
+			</form>
 
-      <!-- Result here-->
-      <div class="row justify-content-center">
-        <span style="display: none; margin-bottom: 0;" class="badge alert alert-danger" id="err-msg">Error Here</span>
-        <span style="display: none; margin-bottom: 0;" class="badge alert alert-success" id="success-msg">Success Here</span>
-      </div>
-    </div>
-  </div>
+			<!-- Result here-->
+			<div class="mt-3">
+				<p id="err-msg" class="mx-auto badge alert alert-danger"
+					style="display: none; white-space: normal; width: 30%;">Error Here</p>
+				<p id="success-msg" class="mx-auto badge alert alert-success"
+					style="display: none; white-space: normal; width: 30%">Success Here</p>
+			</div>
+		</div>
+	</div>
 
-  <script>
-  	/* $(function() {
-  		// Hide messages
-  		const $errEl = $('#err-msg');
-  		const $successEl = $('#success-msg');
-  		$errEl.hide();
-  		$successEl.hide();
-  		
-  		$('#convert-btn').off().on('click', (ev) => {
-  			// Disable button
-  			$(ev.currentTarget).attr('disabled', true);
-  			
-  			// Hide messages
-  	  		$errEl.hide();
-  	  		$successEl.hide();
-  	  		
-  	  		// Get form element
-  	  		const $form = $('#money-exchange-form');
-  	  		// Loop over them and prevent submission
-  	  	  	Array.prototype.slice.call($form)
-  	  	    .forEach(function (form) {
-  	  	      form.addEventListener('submit', function (event) {
-  	  	        if (!form.checkValidity()) {
-  	  	          event.preventDefault()
-  	  	          event.stopPropagation()
-  	  	        }
+	<script>
+		(function () {
+			let form = document.getElementById('money-exchange-form');
 
-  	  	        form.classList.add('was-validated')
-  	  	      }, false)
-  	  	    })
-  	  		  			
-  			// Get data
-  			const dataArr = $form.serializeArray();
-  		    var data = {};
-			
-  		    dataArr.forEach((item) => {
-  		    	data[item.name] = item.value.trim();
-  		    });  		
-  		    
-  		  	var token = $("meta[name='_csrf']").attr("content");
-  			var header = $("meta[name='_csrf_header']").attr("content");
-  		 	
-  			$.ajax({
-  				method: 'POST',
-  				url: '/api/convert',
-  				data: JSON.stringify(data),
-  				contentType: 'application/json;charset=utf-8',
-  				dataType: 'json',
-  				headers: {
-  			        'X-CSRF-TOKEN':token,  			        
-  			    },
-  				success: (res) => {
-  				// Get response and display
-  		          const {value, localize, currency} = res;
-  		          $successEl.text(Intl.NumberFormat(localize, {style: 'currency', currency: currency}).format(value));
-  		          $successEl.show();
-  				},
-  				error: ($xhr, status, err) => {
-  					// Show error message
-  					let errMsg = '';
-  					const {error, errors} = $xhr.responseJSON;
-  					if (errors && errors[0].defaultMessage) {
-  						errMsg = errors[0].defaultMessage;
-  					} else {
-  						errMsg = error;
-  					}
-  					$errEl.text(errMsg);
-  					$errEl.show();
-  				},
-  				complete: () => {
-  					// Enable button
-  					$(ev.currentTarget).removeAttr('disabled');
-  				}
-  			})
-  		})
-  	}) */
- // Example starter JavaScript for disabling form submissions if there are invalid fields
-  	(function() {
-  	  'use strict';
-  	  window.addEventListener('load', function() {
-  	    // Fetch all the forms we want to apply custom Bootstrap validation styles to
-  	    var forms = document.getElementsByClassName('needs-validation');
-  	    // Loop over them and prevent submission
-  	    var validation = Array.prototype.filter.call(forms, function(form) {
-  	      form.addEventListener('submit', function(event) {
-  	        if (form.checkValidity() === false) {
-  	          event.preventDefault();
-  	          event.stopPropagation();
-  	        }
-  	        form.classList.add('was-validated');
-  	      }, false);
-  	    });
-  	  }, false);
-  	})();
-  </script>
+			form.addEventListener('submit', (event) => {
+				// Hide error and success message
+				const $errEl = $('#err-msg');
+				const $successEl = $('#success-msg');
+				$errEl.hide();
+				$successEl.hide();
+
+				// Disble convert button
+				const $convertBtn = $('#convert-btn');
+				$convertBtn.attr('disabled', true)
+
+				if (!form.checkValidity()) {
+						event.preventDefault();
+						event.stopPropagation();
+						form.classList.add('was-validated');
+						$convertBtn.removeAttr('disabled');
+					} else {
+						event.preventDefault();
+						event.stopPropagation();
+
+						// Get token and header
+						const token = $('meta[name="_csrf"]').attr("content");
+						const header = $('meta[name="_csrf_header"]').attr("content");
+
+						// Get data
+						const dataArr = $('#money-exchange-form').serializeArray();
+						let data = {};
+						dataArr.forEach((item) => { data[item.name] = item.value.trim() });
+
+						$.ajax({
+							method: 'POST',
+							url: '/api/convert',
+							data: JSON.stringify(data),
+							contentType: 'application/json;charset=utf-8',
+							dataType: 'json',
+							headers: {
+										'X-CSRF-TOKEN':token,
+								},
+							success: (res) => {
+								const {value, localize, currency} = res;
+
+								// Display success message
+								$successEl
+									.text(Intl.NumberFormat(localize, {style: 'currency', currency: currency})
+									.format(value));
+								$successEl.css('display', 'block');
+							},
+							error: ($xhr, status, err) => {
+								let errMsg = '';
+
+								if (!$xhr.responseJSON && err) {
+									errMsg = err
+								} else {
+									const {error, errors} = $xhr.responseJSON;
+
+									if (errors && errors[0].defaultMessage) {
+										errMsg = errors[0].defaultMessage;
+									} else {
+										errMsg = error;
+									}
+								}
+
+								// Display error message
+								$errEl.text(errMsg);
+								$errEl.css('display', 'block');
+							},
+							complete: () => {
+								// Enable convert button
+								$convertBtn.removeAttr('disabled');
+							}
+						})
+					}
+			}, false)
+		})()
+	</script>
 </body>
+
 </html>
